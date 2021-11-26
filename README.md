@@ -13,12 +13,12 @@ The structure of this repo is provided below.
 
 ```
 nesta_daps
-├── VERSION	                       | Automatically kept up-to-date by hooks
+├── VERSION						   | Automatically kept up-to-date by hooks.
 
 ├── common                         | Any utils to be pooled across flows.
 │	├── ...						   | If these need to be imported into other
 │   │   ├── something.py		   | repos then they should be factored into
-│   │   ├── requirements.txt	   | nestauk/data_utils
+│   │   ├── requirements.txt	   | nestauk/data_utils.
 │   │   └── tests				   |
 │   │       └── test_something.py  |
 
@@ -28,7 +28,7 @@ nesta_daps
 
 ├── deploy						   | Flows are orchestrated by tasks,
 │   ├── Dockerfile				   | which are deployed and orchestrated
-│   └── terraform				   | by AWS EventBridge
+│   └── terraform				   | by AWS EventBridge.
 │       └── module.tf			   |
 
 ├── flows						   | Flows are split into "datasets" and "projects",
@@ -41,9 +41,9 @@ nesta_daps
 								   | either "projects" or "datasets", although
 								   | where those features might generally be
 								   | considered useful to multiple "projects" then
-								   | then enrichment should go under "datasets"
+								   | then enrichment should go under "datasets".
 │   ├── datasets
-│   │   └── gtr					   | An example of a dataset which cuts across "projects"
+│   │   └── gtr					   | An example of a dataset which cuts across "projects".
 │   │       ├── gtr_flow.py		   |
 │   │       ├── gtr_utils.py	   |
 │   │       ├── requirements.txt   |
@@ -51,7 +51,7 @@ nesta_daps
 │   │           └── test_gtr.py	   |
 
 │   └── projects				   | Examples of some "projects" which might aggregate
-│       ├── discovery			   | data from "datasets"
+│       ├── discovery			   | data from "datasets".
 │       │   └── requirements.txt   |
 │       ├── fairer_start		   |
 │       │   └── requirements.txt   |
@@ -60,13 +60,19 @@ nesta_daps
 │       └── sustainable_future	   |
 │           └── requirements.txt   |
 
+├── orms                           | ORMs split by dataset and project.
+│   └── datasets				   |
+│   │   └── gtr.py	     		   |
+│   └── projects                   |
+│       └── fairer_start.py        |
+
 ├── requirements.txt			   | Very low level requirements that are core to all
-                                   | flows and tasks.
+								   | flows and tasks.
 
 └── tasks						   | Tasks are grouped by time period, and should
-    ├── daily.py				   | execute curate tasks.
-    ├── monthly.py				   |
-    └── weekly.py				   |
+	├── daily.py				   | execute curate tasks.
+	├── monthly.py				   |
+	└── weekly.py				   |
 ```
 
 ## Contribution etiquette
