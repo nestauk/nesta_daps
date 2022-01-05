@@ -6,16 +6,16 @@ Tools for geocoding.
 """
 
 import logging
+import time
 from functools import cache
 
 import pandas as pd
-
-import ratelimit
 
 import requests
 
 from retrying import retry
 
+from nesta_daps.common.geo.ratelimit import ratelimit
 
 @cache
 def geocode(**request_kwargs):

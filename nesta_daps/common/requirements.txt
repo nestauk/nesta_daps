@@ -1,0 +1,6 @@
+pandas
+ratelimit
+requests
+retrying
+pycountry
+pycountry_convert

@@ -3,23 +3,23 @@ from pandas.testing import assert_frame_equal
 import pytest
 from unittest import mock
 
-from nesta.packages.geo_utils.geocode import geocode
-from nesta.packages.geo_utils.geocode import _geocode
-from nesta.packages.geo_utils.geocode import geocode_dataframe
-from nesta.packages.geo_utils.geocode import geocode_batch_dataframe
-from nesta.packages.geo_utils.geocode import generate_composite_key
-from nesta.packages.geo_utils.country_iso_code import country_iso_code
-from nesta.packages.geo_utils.country_iso_code import country_iso_code_dataframe
-from nesta.packages.geo_utils.country_iso_code import country_iso_code_to_name
-from nesta.packages.geo_utils.lookup import get_continent_lookup
-from nesta.packages.geo_utils.lookup import get_country_region_lookup
-from nesta.packages.geo_utils.lookup import get_country_continent_lookup
+from nesta_daps.common.geo.geocode import geocode
+from nesta_daps.common.geo.geocode import _geocode
+from nesta_daps.common.geo.geocode import geocode_dataframe
+from nesta_daps.common.geo.geocode import geocode_batch_dataframe
+from nesta_daps.common.geo.geocode import generate_composite_key
+from nesta_daps.common.geo.iso import country_iso_code
+from nesta_daps.common.geo.iso import country_iso_code_dataframe
+from nesta_daps.common.geo.iso import country_iso_code_to_name
+from nesta_daps.common.geo.lookup import get_continent_lookup
+from nesta_daps.common.geo.lookup import get_country_region_lookup
+from nesta_daps.common.geo.lookup import get_country_continent_lookup
 
-REQUESTS = "nesta.packages.geo_utils.geocode.requests.get"
-PYCOUNTRY = "nesta.packages.geo_utils.country_iso_code.pycountry.countries.get"
-GEOCODE = "nesta.packages.geo_utils.geocode.geocode"
-_GEOCODE = "nesta.packages.geo_utils.geocode._geocode"
-COUNTRY_ISO_CODE = "nesta.packages.geo_utils.country_iso_code.country_iso_code"
+REQUESTS = "nesta_daps.common.geo.geocode.requests.get"
+PYCOUNTRY = "nesta_daps.common.geo.iso.pycountry.countries.get"
+GEOCODE = "nesta_daps.common.geo.geocode.geocode"
+_GEOCODE = "nesta_daps.common.geo.geocode._geocode"
+COUNTRY_ISO_CODE = "nesta_daps.common.geo.iso.country_iso_code"
 
 
 class TestGeocoding:
