@@ -6,10 +6,10 @@ from unittest import mock
 from nesta_daps.common.geo.geocode import geocode
 from nesta_daps.common.geo.geocode import _geocode
 from nesta_daps.common.geo.geocode import geocode_dataframe
-from nesta_daps.common.geo.geocode import geocode_batch_dataframe
+from nesta_daps.common.geo.geocode import geocode_batch_list
 from nesta_daps.common.geo.geocode import generate_composite_key
 from nesta_daps.common.geo.iso import country_iso_code
-from nesta_daps.common.geo.iso import country_iso_code_dataframe
+from nesta_daps.common.geo.iso import country_iso_code_list
 from nesta_daps.common.geo.iso import country_iso_code_to_name
 from nesta_daps.common.geo.lookup import get_continent_lookup
 from nesta_daps.common.geo.lookup import get_country_region_lookup
@@ -221,19 +221,36 @@ class TestGeocodeDataFrame:
 class TestGeocodeBatchDataframe:
     @staticmethod
     @pytest.fixture
-    def test_dataframe():
-        df = pd.DataFrame(
+    def test_list():
+        list = [
             {
-                "index": [0, 1, 2],
-                "city": ["London", "Sheffield", "Brussels"],
-                "country": ["UK", "United Kingdom", "Belgium"],
+                "index": 0,
+                "city": "London",
+                "country": "UK",
+            },
+            {
+                "index": 1,
+                "city": "Sheffield",
+                "country": "United Kingdom",
+            },
+            {
+                "index": 2,
+                "city": "Brussels",
+                "country": "Belgium",
             }
-        )
-        return df
+        ]
+        # df = pd.DataFrame(
+        #     {
+        #         "index": [0, 1, 2],
+        #         "city": ["London", "Sheffield", "Brussels"],
+        #         "country": ["UK", "United Kingdom", "Belgium"],
+        #     }
+        # )
+        return list
 
     @mock.patch(_GEOCODE)
     def test_underlying_geocoding_function_called_with_city_country(
-        self, mocked_geocode, test_dataframe
+        self, mocked_geocode, test_list
     ):
         # Generate dataframe using a mocked output
         mocked_geocode.side_effect = [
@@ -243,32 +260,53 @@ class TestGeocodeBatchDataframe:
         ]
 
         # Expected outputs
-        expected_dataframe = pd.DataFrame(
+        # expected_dataframe = pd.DataFrame(
+        #     {
+        #         "index": [0, 1, 2],
+        #         "city": ["London", "Sheffield", "Brussels"],
+        #         "country": ["UK", "United Kingdom", "Belgium"],
+        #         "latitude": [12.923432, 99.999999, -2.202022],
+        #         "longitude": [-75.234569, -88.888888, 0.0],
+        #     }
+        # )
+        expected_list = [
             {
-                "index": [0, 1, 2],
-                "city": ["London", "Sheffield", "Brussels"],
-                "country": ["UK", "United Kingdom", "Belgium"],
-                "latitude": [12.923432, 99.999999, -2.202022],
-                "longitude": [-75.234569, -88.888888, 0.0],
+                "index": 0,
+                "city": "London",
+                "country": "UK",
+                "latitude": 12.923432,
+                "longitude": -75.234569
+            },
+            {
+                "index": 1,
+                "city": "Sheffield",
+                "country": "United Kingdom",
+                "latitude": 99.999999,
+                "longitude": -88.888888
+            },
+            {
+                "index": 2,
+                "city": "Brussels",
+                "country": "Belgium",
+                "latitude": -2.202022,
+                "longitude": 0.0
             }
-        )
+        ]
         expected_calls = [
             mock.call(city="London", country="UK"),
             mock.call(city="Sheffield", country="United Kingdom"),
             mock.call(city="Brussels", country="Belgium"),
         ]
 
-        geocoded_dataframe = geocode_batch_dataframe(test_dataframe)
+        geocoded_list = geocode_batch_list(test_list)
 
         # Check expected behaviours
-        assert_frame_equal(
-            geocoded_dataframe, expected_dataframe, check_like=True, check_dtype=False
-        )
+        assert geocoded_list == expected_list
         assert mocked_geocode.mock_calls == expected_calls
 
     @mock.patch(_GEOCODE)
     def test_underlying_geocoding_function_called_with_query_fallback(
-        self, mocked_geocode, test_dataframe
+        self, mocked_geocode, test_list
     ):
         mocked_geocode.side_effect = [
             None,
@@ -279,15 +317,29 @@ class TestGeocodeBatchDataframe:
             {"lat": 3, "lon": 6},
         ]
         # Expected outputs
-        expected_dataframe = pd.DataFrame(
+        expected_list = [
             {
-                "index": [0, 1, 2],
-                "city": ["London", "Sheffield", "Brussels"],
-                "country": ["UK", "United Kingdom", "Belgium"],
-                "latitude": [1.0, 2.0, 3.0],
-                "longitude": [4.0, 5.0, 6.0],
+                "index": 0,
+                "city": "London",
+                "country": "UK",
+                "latitude": 1.0,
+                "longitude": 4.0
+            },
+            {
+                "index": 1,
+                "city": "Sheffield",
+                "country": "United Kingdom",
+                "latitude": 2.0,
+                "longitude": 5.0
+            },
+            {
+                "index": 2,
+                "city": "Brussels",
+                "country": "Belgium",
+                "latitude": 3.0,
+                "longitude": 6.0
             }
-        )
+        ]
         expected_calls = [
             mock.call(city="London", country="UK"),
             mock.call(q="London UK"),
@@ -297,19 +349,17 @@ class TestGeocodeBatchDataframe:
             mock.call(q="Brussels Belgium"),
         ]
 
-        geocoded_dataframe = geocode_batch_dataframe(
-            test_dataframe, query_method="both"
+        geocoded_list = geocode_batch_list(
+            test_list, query_method="both"
         )
 
         # Check expected behaviours
-        assert_frame_equal(
-            geocoded_dataframe, expected_dataframe, check_like=True, check_dtype=False
-        )
+        assert geocoded_list, expected_list
         assert mocked_geocode.mock_calls == expected_calls
 
     @mock.patch(_GEOCODE)
     def test_underlying_geocoding_function_called_with_query_method_only(
-        self, mocked_geocode, test_dataframe
+        self, mocked_geocode, test_list
     ):
         mocked_geocode.side_effect = [
             {"lat": 1, "lon": 4},
@@ -317,46 +367,58 @@ class TestGeocodeBatchDataframe:
             {"lat": 3, "lon": 6},
         ]
         # Expected outputs
-        expected_dataframe = pd.DataFrame(
+        expected_list = [
             {
-                "index": [0, 1, 2],
-                "city": ["London", "Sheffield", "Brussels"],
-                "country": ["UK", "United Kingdom", "Belgium"],
-                "latitude": [1.0, 2.0, 3.0],
-                "longitude": [4.0, 5.0, 6.0],
+                "index": 0,
+                "city": "London",
+                "country": "UK",
+                "latitude": 1.0,
+                "longitude": 4.0
+            },
+            {
+                "index": 1,
+                "city": "Sheffield",
+                "country": "United Kingdom",
+                "latitude": 2.0,
+                "longitude": 5.0
+            },
+            {
+                "index": 2,
+                "city": "Brussels",
+                "country": "Belgium",
+                "latitude": 3.0,
+                "longitude": 6.0
             }
-        )
+        ]
         expected_calls = [
             mock.call(q="London UK"),
             mock.call(q="Sheffield United Kingdom"),
             mock.call(q="Brussels Belgium"),
         ]
 
-        geocoded_dataframe = geocode_batch_dataframe(
-            test_dataframe, query_method="query_only"
+        geocoded_list = geocode_batch_list(
+            test_list, query_method="query_only"
         )
 
         # Check expected behaviours
-        assert_frame_equal(
-            geocoded_dataframe, expected_dataframe, check_like=True, check_dtype=False
-        )
+        assert geocoded_list, expected_list
         assert mocked_geocode.mock_calls == expected_calls
 
     @mock.patch(_GEOCODE)
     def test_valueerror_raised_when_invalid_query_method_passed(
-        self, mocked_geocode, test_dataframe
+        self, mocked_geocode, test_list
     ):
         with pytest.raises(ValueError):
-            geocode_batch_dataframe(test_dataframe, query_method="cats")
+            geocode_batch_list(test_list, query_method="cats")
 
         with pytest.raises(ValueError):
-            geocode_batch_dataframe(test_dataframe, query_method="test")
+            geocode_batch_list(test_list, query_method="test")
 
         with pytest.raises(ValueError):
-            geocode_batch_dataframe(test_dataframe, query_method=1)
+            geocode_batch_list(test_list, query_method=1)
 
     @mock.patch(_GEOCODE)
-    def test_output_column_names_are_applied(self, mocked_geocode, test_dataframe):
+    def test_output_column_names_are_applied(self, mocked_geocode, test_list):
 
         # Generate dataframe using a mocked output
         mocked_geocode.side_effect = [
@@ -366,24 +428,36 @@ class TestGeocodeBatchDataframe:
         ]
 
         # Expected outputs
-        expected_dataframe = pd.DataFrame(
+        expected_list = [
             {
-                "index": [0, 1, 2],
-                "city": ["London", "Sheffield", "Brussels"],
-                "country": ["UK", "United Kingdom", "Belgium"],
-                "lat": [12.923432, 99.999999, -2.202022],
-                "lon": [-75.234569, -88.888888, 0.0],
+                "index": 0,
+                "city": "London",
+                "country": "UK",
+                "lat": 12.923432,
+                "lon": -75.234569
+            },
+            {
+                "index": 1,
+                "city": "Sheffield",
+                "country": "United Kingdom",
+                "lat": 99.999999,
+                "lon": -88.888888
+            },
+            {
+                "index": 2,
+                "city": "Brussels",
+                "country": "Belgium",
+                "lat": -2.202022,
+                "lon": 0.0
             }
-        )
+        ]
 
-        geocoded_dataframe = geocode_batch_dataframe(
-            test_dataframe, latitude="lat", longitude="lon"
+        geocoded_dataframe = geocode_batch_list(
+            test_list, latitude="lat", longitude="lon"
         )
 
         # Check expected behaviours
-        assert_frame_equal(
-            geocoded_dataframe, expected_dataframe, check_like=True, check_dtype=False
-        )
+        assert geocoded_dataframe == expected_list
 
 
 class TestCountryIsoCode:
@@ -471,12 +545,11 @@ class TestCountryIsoCodeDataframe:
 
     @mock.patch(COUNTRY_ISO_CODE)
     def test_valid_countries_coded(self, mocked_country_iso_code):
-        test_df = pd.DataFrame(
-            {
-                "index": [0, 1, 2],
-                "country": ["United Kingdom", "Belgium", "United States"],
-            }
-        )
+        test_list = [
+            {"index": 0, "country": "United Kingdom"},
+            {"index": 1, "country": "Belgium"},
+            {"index": 2, "country": "United States"}
+        ]
         mocked_response_uk = self._mocked_response("GB", "GBR", "123", "EU")
         mocked_response_be = self._mocked_response("BE", "BEL", "875", "EU")
         mocked_response_us = self._mocked_response("US", "USA", "014", "NA")
@@ -485,44 +558,70 @@ class TestCountryIsoCodeDataframe:
             mocked_response_be,
             mocked_response_us,
         ]
-        expected_dataframe = pd.DataFrame(
+        expected_list = [
             {
-                "index": [0, 1, 2],
-                "country": ["United Kingdom", "Belgium", "United States"],
-                "country_alpha_2": ["GB", "BE", "US"],
-                "country_alpha_3": ["GBR", "BEL", "USA"],
-                "country_numeric": ["123", "875", "014"],
-                "continent": ["EU", "EU", "NA"],
+                "index": 0,
+                "country": "United Kingdom",
+                "country_alpha_2": "GB",
+                "country_alpha_3": "GBR",
+                "country_numeric": "123",
+                "continent": "EU"
+            },
+            {
+                "index": 1,
+                "country": "Belgium",
+                "country_alpha_2": "BE",
+                "country_alpha_3": "BEL",
+                "country_numeric": "875",
+                "continent": "EU"
+            },
+            {
+                "index": 2,
+                "country": "United States",
+                "country_alpha_2": "US",
+                "country_alpha_3": "USA",
+                "country_numeric": "014",
+                "continent": "NA"
             }
-        )
-        coded_df = country_iso_code_dataframe(test_df)
-        assert coded_df.to_dict(orient="records") == expected_dataframe.to_dict(
-            orient="records"
-        )
+        ]
+        coded_list = country_iso_code_list(test_list)
+        assert coded_list == expected_list
 
     @mock.patch(COUNTRY_ISO_CODE)
     def test_invalid_countries_data_is_none(self, mocked_country_iso_code):
-        test_df = pd.DataFrame(
-            {
-                "index": [0, 1, 2],
-                "country": ["United Kingdom", "Belgium", "United States"],
-            }
-        )
+        test_list = [
+            {"index": 0, "country": "United Kingdom"},
+            {"index": 1, "country": "Belgium"},
+            {"index": 2, "country": "United States"}
+        ]
         mocked_country_iso_code.side_effect = KeyError
-        expected_dataframe = pd.DataFrame(
+        expected_list = [
             {
-                "index": [0, 1, 2],
-                "country": ["United Kingdom", "Belgium", "United States"],
-                "country_alpha_2": [None, None, None],
-                "country_alpha_3": [None, None, None],
-                "country_numeric": [None, None, None],
-                "continent": [None, None, None],
-            }
-        )
-        coded_df = country_iso_code_dataframe(test_df)
-        assert coded_df.to_dict(orient="records") == expected_dataframe.to_dict(
-            orient="records"
-        )
+                "index": 0,
+                "country": "United Kingdom",
+                "country_alpha_2": None,
+                "country_alpha_3": None,
+                "country_numeric": None,
+                "continent": None
+            },
+            {
+                "index": 1,
+                "country": "Belgium",
+                "country_alpha_2": None,
+                "country_alpha_3": None,
+                "country_numeric": None,
+                "continent": None
+            },
+            {
+                "index": 2,
+                "country": "United States",
+                "country_alpha_2": None,
+                "country_alpha_3": None,
+                "country_numeric": None,
+                "continent": None}
+        ]
+        coded_list = country_iso_code_list(test_list)
+        assert coded_list == expected_list
 
 
 class TestCountryIsoCodeToName:

@@ -1,7 +1,7 @@
 from functools import cache
 from io import StringIO
 
-import pandas as pd
+import csv
 
 import requests
 
@@ -52,14 +52,15 @@ def get_country_continent_lookup():
     """
     r = requests.get(COUNTRY_CODES_URL)
     r.raise_for_status()
-    with StringIO(r.text) as csv:
-        df = pd.read_csv(
-            csv, usecols=["ISO3166-1-Alpha-2", "Continent"], keep_default_na=False
-        )
+    with StringIO(r.text) as country_codes_csv:
+        country_codes = [{
+                k: v for k, v in row.items()
+            }
+            for row in csv.DictReader(country_codes_csv)]
     data = {
-        row["ISO3166-1-Alpha-2"]: row["Continent"]
-        for _, row in df.iterrows()
-        if not pd.isnull(row["ISO3166-1-Alpha-2"])
+        item["ISO3166-1-Alpha-2"]: item["Continent"]
+        for item in country_codes
+        if item["ISO3166-1-Alpha-2"] is not None
     }
     # Kosovo, null
     data["XK"] = "EU"
@@ -79,15 +80,16 @@ def get_country_region_lookup():
     """
     r = requests.get(COUNTRY_CODES_URL)
     r.raise_for_status()
-    with StringIO(r.text) as csv:
-        df = pd.read_csv(
-            csv, usecols=["official_name_en", "ISO3166-1-Alpha-2", "Sub-region Name"]
-        )
+    with StringIO(r.text) as country_codes_csv:
+        country_codes = [{
+                k: v for k, v in row.items()
+            }
+            for row in csv.DictReader(country_codes_csv)]
     data = {
-        row["ISO3166-1-Alpha-2"]: (row["official_name_en"], row["Sub-region Name"])
-        for _, row in df.iterrows()
-        if not pd.isnull(row["official_name_en"])
-        and not pd.isnull(row["ISO3166-1-Alpha-2"])
+        item["ISO3166-1-Alpha-2"]: (item["official_name_en"], item["Sub-region Name"])
+        for item in country_codes
+        if len(item["official_name_en"]) > 0
+        and len(item["ISO3166-1-Alpha-2"]) > 0
     }
     data["XK"] = ("Kosovo", "Southern Europe")
     data["TW"] = ("Kosovo", "Eastern Asia")
@@ -104,10 +106,16 @@ def get_iso2_to_iso3_lookup(reverse=False):
     Returns:
         lookup (dict): Key-value pairs of ISO2 to ISO3 codes (or reverse).
     """
-    country_codes = pd.read_csv(COUNTRY_CODES_URL)
+    r = requests.get(COUNTRY_CODES_URL)
+    r.raise_for_status()
+    with StringIO(r.text) as country_codes_csv:
+        country_codes = [{
+            k: v for k, v in row.items()
+        }
+        for row in csv.DictReader(country_codes_csv)]
     alpha2_to_alpha3 = {
-        row["ISO3166-1-Alpha-2"]: row["ISO3166-1-Alpha-3"]
-        for _, row in country_codes.iterrows()
+        code_item["ISO3166-1-Alpha-2"]: code_item["ISO3166-1-Alpha-3"]
+        for code_item in country_codes
     }
     alpha2_to_alpha3[None] = None  # no country
     alpha2_to_alpha3["XK"] = "RKS"  # kosovo

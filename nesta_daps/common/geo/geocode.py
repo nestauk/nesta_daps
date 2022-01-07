@@ -128,8 +128,8 @@ def geocode_dataframe(df):
     return pd.merge(df, _df, how="left", left_on=in_cols, right_on=in_cols)
 
 
-def geocode_batch_dataframe(
-    df,
+def geocode_batch_list(
+    list,
     city="city",
     country="country",
     latitude="latitude",
@@ -153,26 +153,26 @@ def geocode_batch_dataframe(
                                     'both': city, country with fallback to q method
 
     Returns:
-        (:obj:`pandas.DataFrame`): original dataframe with lat and lon appended as floats
+        (:obj:`list`): original list of dicts with lat and lon appended as floats
     """
     if query_method not in ["city_country_only", "query_only", "both"]:
         raise ValueError(
             "Invalid query method, must be 'city_country_only', 'query_only' or 'both'"
         )
 
-    df[latitude], df[longitude] = None, None
 
-    for idx, row in df.iterrows():
+    for item in list:
+        item[latitude], item[longitude] = None, None
         location = None
         if query_method in ["city_country_only", "both"]:
-            location = _geocode(city=row[city], country=row[country])
+            location = _geocode(city=item[city], country=item[country])
         if location is None and query_method in ["query_only", "both"]:
-            query = f"{row[city]} {row[country]}"
+            query = f"{item[city]} {item[country]}"
             location = _geocode(q=query)
         if location is not None:
-            df.loc[idx, latitude] = float(location["lat"])
-            df.loc[idx, longitude] = float(location["lon"])
-    return df
+            item[latitude] = float(location["lat"])
+            item[longitude] = float(location["lon"])
+    return list
 
 
 def generate_composite_key(city=None, country=None):
