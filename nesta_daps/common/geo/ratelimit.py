@@ -5,8 +5,9 @@ Apply rate limiting at a threshold per second
 '''
 
 import time
+from types import MethodType
 
-def ratelimit(max_per_second):
+def ratelimit(max_per_second: float) -> MethodType:
     '''
     Args:
         max_per_second (float): Number of permitted hits per second

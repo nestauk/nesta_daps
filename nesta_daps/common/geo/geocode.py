@@ -18,7 +18,7 @@ from retrying import retry
 from nesta_daps.common.geo.ratelimit import ratelimit
 
 @cache
-def geocode(**request_kwargs):
+def geocode(**request_kwargs: dict) -> list[dict]:
     """
     Geocoder using the Open Street Map Nominatim API.
 
@@ -45,7 +45,7 @@ def geocode(**request_kwargs):
     return geo_data
 
 
-def retry_if_not_value_error(exception):
+def retry_if_not_value_error(exception: Exception) -> bool:
     """Forces retry to exit if a valueError is returned. Supplied to the
     'retry_on_exception' argument in the retry decorator.
 
@@ -60,7 +60,7 @@ def retry_if_not_value_error(exception):
 
 @retry(stop_max_attempt_number=10, retry_on_exception=retry_if_not_value_error)
 @ratelimit(max_per_second=0.5)
-def _geocode(q=None, **kwargs):
+def _geocode(q: str=None, **kwargs: str) -> dict:
     """Extension of geocode to catch invalid requests to the api and handle errors.
     failure.
 
@@ -95,7 +95,7 @@ def _geocode(q=None, **kwargs):
     return {"lat": lat, "lon": lon}
 
 
-def geocode_dataframe(df):
+def geocode_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
     A wrapper for the geocode function to process a supplied dataframe using
     the city and country.
@@ -129,13 +129,13 @@ def geocode_dataframe(df):
 
 
 def geocode_batch_list(
-    list,
-    city="city",
-    country="country",
-    latitude="latitude",
-    longitude="longitude",
-    query_method="both",
-):
+    list: list[dict],
+    city: str="city",
+    country: str="country",
+    latitude: str="latitude",
+    longitude: str="longitude",
+    query_method:str ="both",
+) -> list[dict]:
     """Geocodes a dataframe, first by supplying the city and country to the api, if this
     fails a second attempt is made supplying the combination using the q= method.
     The supplied dataframe df is returned with additional columns appended, containing
@@ -175,7 +175,7 @@ def geocode_batch_list(
     return list
 
 
-def generate_composite_key(city=None, country=None):
+def generate_composite_key(city: str=None, country: str=None) -> str:
     """Generates a composite key to use as the primary key for the geographic data.
 
     Args:

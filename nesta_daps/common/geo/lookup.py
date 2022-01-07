@@ -9,7 +9,7 @@ COUNTRY_CODES_URL = "https://datahub.io/core/country-codes/r/country-codes.csv"
 
 
 @cache
-def get_eu_countries():
+def get_eu_countries() -> list:
     """
     All EU ISO-2 codes
 
@@ -22,7 +22,7 @@ def get_eu_countries():
 
 
 @cache
-def get_continent_lookup():
+def get_continent_lookup() -> list:
     """
     Retrieves continent ISO2 code to continent name mapping from a static open URL.
 
@@ -42,7 +42,7 @@ def get_continent_lookup():
 
 
 @cache
-def get_country_continent_lookup():
+def get_country_continent_lookup() -> dict:
     """
     Retrieves continent lookups for all world countries,
     by ISO2 code, from a static open URL.
@@ -69,7 +69,7 @@ def get_country_continent_lookup():
 
 
 @cache
-def get_country_region_lookup():
+def get_country_region_lookup() -> dict:
     """
     Retrieves subregions (around 18 in total)
     lookups for all world countries, by ISO2 code,
@@ -97,7 +97,7 @@ def get_country_region_lookup():
 
 
 @cache
-def get_iso2_to_iso3_lookup(reverse=False):
+def get_iso2_to_iso3_lookup(reverse: bool=False) -> dict:
     """
     Retrieves lookup of ISO2 to ISO3 (or reverse).
 
@@ -125,7 +125,7 @@ def get_iso2_to_iso3_lookup(reverse=False):
 
 
 @cache
-def get_disputed_countries():
+def get_disputed_countries() -> dict:
     """Lookup of disputed aliases, to "forgive" disperate datasets
     for making different geo-political decisions
 

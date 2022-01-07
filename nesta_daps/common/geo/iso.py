@@ -10,7 +10,7 @@ from functools import lru_cache
 from pycountry_convert import country_alpha2_to_continent_code
 
 
-def alpha2_to_continent_mapping():
+def alpha2_to_continent_mapping() -> dict:
     """Wrapper around :obj:`pycountry-convert`'s :obj:`country_alpha2_to_continent_code`
     function to generate a dictionary mapping ISO2 to continent codes, accounting
     where :obj:`pycountry-convert` has no mapping (e.g. for Vatican).
@@ -28,7 +28,7 @@ def alpha2_to_continent_mapping():
     return continents
 
 
-def _country_iso_code(country):
+def _country_iso_code(country: str) -> pycountry.countries:
     for name_type in ["name", "common_name", "official_name"]:
         query = {name_type: country}
         try:
@@ -41,7 +41,7 @@ def _country_iso_code(country):
 
 
 @lru_cache()
-def country_iso_code(country):
+def country_iso_code(country: str) -> pycountry.countries:
     """
     Look up the ISO 3166 codes for countries.
     https://www.iso.org/glossary-for-iso-3166.html
@@ -63,7 +63,7 @@ def country_iso_code(country):
     return result
 
 
-def country_iso_code_list(list, country="country"):
+def country_iso_code_list(list: list[dict], country: str="country") -> list[dict]:
     """
     A wrapper for the country_iso_code function to apply it to a whole dataframe,
     using the country name. Also appends the continent code based on the country.
@@ -98,7 +98,7 @@ def country_iso_code_list(list, country="country"):
     return list
 
 
-def country_iso_code_to_name(code, iso2=False):
+def country_iso_code_to_name(code: str, iso2: bool=False) -> str:
     """Converts country alpha_3 into name and catches error so this can be used with
        pd.apply.
 
