@@ -14,7 +14,7 @@ def get_eu_countries() -> list:
     All EU ISO-2 codes
 
     Returns:
-        data (list): List of ISO-2 codes)
+        data : List of ISO-2 codes)
     """
     url = "https://restcountries.eu/rest/v2/regionalbloc/eu"
     r = requests.get(url)
@@ -27,7 +27,7 @@ def get_continent_lookup() -> list:
     Retrieves continent ISO2 code to continent name mapping from a static open URL.
 
     Returns:
-        data (dict): Key-value pairs of continent-codes and names.
+        data : Key-value pairs of continent-codes and names.
     """
 
     url = (
@@ -48,7 +48,7 @@ def get_country_continent_lookup() -> dict:
     by ISO2 code, from a static open URL.
 
     Returns:
-        data (dict): Values are country_name-continent pairs.
+        data : Values are country_name-continent pairs.
     """
     r = requests.get(COUNTRY_CODES_URL)
     r.raise_for_status()
@@ -76,7 +76,7 @@ def get_country_region_lookup() -> dict:
     from a static open URL.
 
     Returns:
-        data (dict): Values are country_name-region_name pairs.
+        data : Values are country_name-region_name pairs.
     """
     r = requests.get(COUNTRY_CODES_URL)
     r.raise_for_status()
@@ -102,9 +102,9 @@ def get_iso2_to_iso3_lookup(reverse: bool=False) -> dict:
     Retrieves lookup of ISO2 to ISO3 (or reverse).
 
     Args:
-        reverse (bool): If True, return ISO3 to ISO2 lookup instead.
+        reverse : If True, return ISO3 to ISO2 lookup instead.
     Returns:
-        lookup (dict): Key-value pairs of ISO2 to ISO3 codes (or reverse).
+        lookup : Key-value pairs of ISO2 to ISO3 codes (or reverse).
     """
     r = requests.get(COUNTRY_CODES_URL)
     r.raise_for_status()
@@ -130,7 +130,7 @@ def get_disputed_countries() -> dict:
     for making different geo-political decisions
 
     Returns:
-        lookup (dict):
+        dict : dictionary of disputed country lookups
     """
     return {
         "RKS": "SRB",  # Kosovo: Serbia

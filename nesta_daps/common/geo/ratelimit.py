@@ -8,9 +8,10 @@ import time
 from types import MethodType
 
 def ratelimit(max_per_second: float) -> MethodType:
-    '''
+    '''Limits the rate of execution for a function.
+
     Args:
-        max_per_second (float): Number of permitted hits per second
+        max_per_second : Number of permitted hits per second
     '''
     min_interval = 1.0 / float(max_per_second)
     def decorate(func):

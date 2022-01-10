@@ -11,12 +11,12 @@ from pycountry_convert import country_alpha2_to_continent_code
 
 
 def alpha2_to_continent_mapping() -> dict:
-    """Wrapper around :obj:`pycountry-convert`'s :obj:`country_alpha2_to_continent_code`
+    """Wrapper around `pycountry-convert`'s `country_alpha2_to_continent_code`
     function to generate a dictionary mapping ISO2 to continent codes, accounting
-    where :obj:`pycountry-convert` has no mapping (e.g. for Vatican).
+    where `pycountry-convert` has no mapping (e.g. for Vatican).
 
     Returns:
-        :obj`dict`
+        continents : dictionary of country codes to continent codes
     """
     continents = {}
     for c in pycountry.countries:
@@ -29,6 +29,15 @@ def alpha2_to_continent_mapping() -> dict:
 
 
 def _country_iso_code(country: str) -> pycountry.countries:
+    """Finds country name from pycountry.country if found
+    using any of name, official_name or common_name.
+
+    Args:
+        country : country to pass to pycountry
+
+    Returns:
+        result : resulting pycountry query
+    """
     for name_type in ["name", "common_name", "official_name"]:
         query = {name_type: country}
         try:
@@ -49,9 +58,9 @@ def country_iso_code(country: str) -> pycountry.countries:
     Wraps the pycountry module to attempt lookup with all name options.
 
     Args:
-        country (str): name of the country to lookup
+        country : name of the country to lookup
     Returns:
-        Country object from the pycountry module
+        result : Country object from the pycountry module
     """
     country = str(country)
     try:
@@ -69,10 +78,10 @@ def country_iso_code_list(list: list[dict], country: str="country") -> list[dict
     using the country name. Also appends the continent code based on the country.
 
     Args:
-        list (:obj:`list`): a list of dicts containing a country field.
-        country (str): field in df containing the country name
+        list : a list of dicts containing a country field.
+        country : field in df containing the country name
     Returns:
-        a list of dicts with country_alpha_2, country_alpha_3, country_numeric, and
+        list : a list of dicts with country_alpha_2, country_alpha_3, country_numeric, and
         continent columns appended.
     """
 
@@ -103,10 +112,10 @@ def country_iso_code_to_name(code: str, iso2: bool=False) -> str:
        pd.apply.
 
     Args:
-        code (str): iso alpha 3 code
-        iso2 (bool): use alpha 2 code instead
+        code : iso alpha 3 code
+        iso2 : use alpha 2 code instead
     Returns:
-        str: name of the country or None if not valid
+        str : name of the country or None if not valid
     """
     try:
         if iso2:

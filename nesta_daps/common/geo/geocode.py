@@ -27,9 +27,9 @@ def geocode(**request_kwargs: dict) -> list[dict]:
     https://operations.osmfoundation.org/policies/nominatim/
 
     Args:
-        request_kwargs (dict): Parameters for OSM API.
+        request_kwargs : Parameters for OSM API.
     Returns:
-        JSON from API response.
+        geo_data : JSON from API response.
     """
     # Explictly require json for ease of use
     request_kwargs["format"] = "json"
@@ -50,10 +50,10 @@ def retry_if_not_value_error(exception: Exception) -> bool:
     'retry_on_exception' argument in the retry decorator.
 
     Args:
-        exception (Exception): the raised exception, to check
+        exception : the raised exception, to check
 
     Returns:
-        (bool): False if a ValueError, else True
+        False if a ValueError, else True
     """
     return not isinstance(exception, ValueError)
 
@@ -65,8 +65,8 @@ def _geocode(q: str=None, **kwargs: str) -> dict:
     failure.
 
     Args:
-        q (str): query string, multiple words should be separated with +
-        kwargs (str): name and value of any other valid query parameters
+        q : query string, multiple words should be separated with +
+        kwargs : name and value of any other valid query parameters
 
     Returns:
         dict: lat and lon
@@ -101,9 +101,9 @@ def geocode_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     the city and country.
 
     Args:
-        df (dataframe): a dataframe containing city and country fields.
+        df : a dataframe containing city and country fields.
     Returns:
-        a dataframe with a 'coordinates' column appended.
+        df : a dataframe with a 'coordinates' column appended.
     """
     in_cols = ["city", "country"]
     out_col = "coordinates"
@@ -142,18 +142,18 @@ def geocode_batch_list(
     the latitude and longitude as floats.
 
     Args:
-        df (:obj:`pandas.DataFrame`): input dataframe
-        city (str): name of the input column containing the city
-        country (str): name of the input column containing the country
-        latitude (str): name of the output column containing the latitude
-        longitude (str): name of the output column containing the longitude
-        query_method (int): query methods to attempt:
+        list : input list of dicts
+        city : name of the input column containing the city
+        country : name of the input column containing the country
+        latitude : name of the output column containing the latitude
+        longitude : name of the output column containing the longitude
+        query_method : query methods to attempt:
                                     'city_country_only': city and country only
                                     'query_only': q method only
                                     'both': city, country with fallback to q method
 
     Returns:
-        (:obj:`list`): original list of dicts with lat and lon appended as floats
+        list : original list of dicts with lat and lon appended as floats
     """
     if query_method not in ["city_country_only", "query_only", "both"]:
         raise ValueError(
@@ -179,11 +179,11 @@ def generate_composite_key(city: str=None, country: str=None) -> str:
     """Generates a composite key to use as the primary key for the geographic data.
 
     Args:
-        city (str): name of the city
-        country (str): name of the country
+        city : name of the city
+        country : name of the country
 
     Returns:
-        (str): composite key
+        str : composite key
     """
     try:
         city = city.replace(" ", "-").lower()
