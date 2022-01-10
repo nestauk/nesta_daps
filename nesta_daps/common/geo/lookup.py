@@ -1,7 +1,7 @@
 from functools import cache
 from io import StringIO
 
-import pandas as pd
+import csv
 
 import requests
 
@@ -9,12 +9,12 @@ COUNTRY_CODES_URL = "https://datahub.io/core/country-codes/r/country-codes.csv"
 
 
 @cache
-def get_eu_countries():
+def get_eu_countries() -> list:
     """
     All EU ISO-2 codes
 
     Returns:
-        data (list): List of ISO-2 codes)
+        data : List of ISO-2 codes)
     """
     url = "https://restcountries.eu/rest/v2/regionalbloc/eu"
     r = requests.get(url)
@@ -22,12 +22,12 @@ def get_eu_countries():
 
 
 @cache
-def get_continent_lookup():
+def get_continent_lookup() -> list:
     """
     Retrieves continent ISO2 code to continent name mapping from a static open URL.
 
     Returns:
-        data (dict): Key-value pairs of continent-codes and names.
+        data : Key-value pairs of continent-codes and names.
     """
 
     url = (
@@ -42,24 +42,25 @@ def get_continent_lookup():
 
 
 @cache
-def get_country_continent_lookup():
+def get_country_continent_lookup() -> dict:
     """
     Retrieves continent lookups for all world countries,
     by ISO2 code, from a static open URL.
 
     Returns:
-        data (dict): Values are country_name-continent pairs.
+        data : Values are country_name-continent pairs.
     """
     r = requests.get(COUNTRY_CODES_URL)
     r.raise_for_status()
-    with StringIO(r.text) as csv:
-        df = pd.read_csv(
-            csv, usecols=["ISO3166-1-Alpha-2", "Continent"], keep_default_na=False
-        )
+    with StringIO(r.text) as country_codes_csv:
+        country_codes = [{
+                k: v for k, v in row.items()
+            }
+            for row in csv.DictReader(country_codes_csv)]
     data = {
-        row["ISO3166-1-Alpha-2"]: row["Continent"]
-        for _, row in df.iterrows()
-        if not pd.isnull(row["ISO3166-1-Alpha-2"])
+        item["ISO3166-1-Alpha-2"]: item["Continent"]
+        for item in country_codes
+        if item["ISO3166-1-Alpha-2"] is not None
     }
     # Kosovo, null
     data["XK"] = "EU"
@@ -68,26 +69,27 @@ def get_country_continent_lookup():
 
 
 @cache
-def get_country_region_lookup():
+def get_country_region_lookup() -> dict:
     """
     Retrieves subregions (around 18 in total)
     lookups for all world countries, by ISO2 code,
     from a static open URL.
 
     Returns:
-        data (dict): Values are country_name-region_name pairs.
+        data : Values are country_name-region_name pairs.
     """
     r = requests.get(COUNTRY_CODES_URL)
     r.raise_for_status()
-    with StringIO(r.text) as csv:
-        df = pd.read_csv(
-            csv, usecols=["official_name_en", "ISO3166-1-Alpha-2", "Sub-region Name"]
-        )
+    with StringIO(r.text) as country_codes_csv:
+        country_codes = [{
+                k: v for k, v in row.items()
+            }
+            for row in csv.DictReader(country_codes_csv)]
     data = {
-        row["ISO3166-1-Alpha-2"]: (row["official_name_en"], row["Sub-region Name"])
-        for _, row in df.iterrows()
-        if not pd.isnull(row["official_name_en"])
-        and not pd.isnull(row["ISO3166-1-Alpha-2"])
+        item["ISO3166-1-Alpha-2"]: (item["official_name_en"], item["Sub-region Name"])
+        for item in country_codes
+        if len(item["official_name_en"]) > 0
+        and len(item["ISO3166-1-Alpha-2"]) > 0
     }
     data["XK"] = ("Kosovo", "Southern Europe")
     data["TW"] = ("Kosovo", "Eastern Asia")
@@ -95,19 +97,25 @@ def get_country_region_lookup():
 
 
 @cache
-def get_iso2_to_iso3_lookup(reverse=False):
+def get_iso2_to_iso3_lookup(reverse: bool=False) -> dict:
     """
     Retrieves lookup of ISO2 to ISO3 (or reverse).
 
     Args:
-        reverse (bool): If True, return ISO3 to ISO2 lookup instead.
+        reverse : If True, return ISO3 to ISO2 lookup instead.
     Returns:
-        lookup (dict): Key-value pairs of ISO2 to ISO3 codes (or reverse).
+        lookup : Key-value pairs of ISO2 to ISO3 codes (or reverse).
     """
-    country_codes = pd.read_csv(COUNTRY_CODES_URL)
+    r = requests.get(COUNTRY_CODES_URL)
+    r.raise_for_status()
+    with StringIO(r.text) as country_codes_csv:
+        country_codes = [{
+            k: v for k, v in row.items()
+        }
+        for row in csv.DictReader(country_codes_csv)]
     alpha2_to_alpha3 = {
-        row["ISO3166-1-Alpha-2"]: row["ISO3166-1-Alpha-3"]
-        for _, row in country_codes.iterrows()
+        code_item["ISO3166-1-Alpha-2"]: code_item["ISO3166-1-Alpha-3"]
+        for code_item in country_codes
     }
     alpha2_to_alpha3[None] = None  # no country
     alpha2_to_alpha3["XK"] = "RKS"  # kosovo
@@ -117,12 +125,12 @@ def get_iso2_to_iso3_lookup(reverse=False):
 
 
 @cache
-def get_disputed_countries():
+def get_disputed_countries() -> dict:
     """Lookup of disputed aliases, to "forgive" disperate datasets
     for making different geo-political decisions
 
     Returns:
-        lookup (dict):
+        dict : dictionary of disputed country lookups
     """
     return {
         "RKS": "SRB",  # Kosovo: Serbia

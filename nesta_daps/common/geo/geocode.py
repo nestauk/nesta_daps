@@ -6,19 +6,19 @@ Tools for geocoding.
 """
 
 import logging
+import time
 from functools import cache
 
 import pandas as pd
-
-import ratelimit
 
 import requests
 
 from retrying import retry
 
+from nesta_daps.common.geo.ratelimit import ratelimit
 
 @cache
-def geocode(**request_kwargs):
+def geocode(**request_kwargs: dict) -> list[dict]:
     """
     Geocoder using the Open Street Map Nominatim API.
 
@@ -27,9 +27,9 @@ def geocode(**request_kwargs):
     https://operations.osmfoundation.org/policies/nominatim/
 
     Args:
-        request_kwargs (dict): Parameters for OSM API.
+        request_kwargs : Parameters for OSM API.
     Returns:
-        JSON from API response.
+        geo_data : JSON from API response.
     """
     # Explictly require json for ease of use
     request_kwargs["format"] = "json"
@@ -45,28 +45,28 @@ def geocode(**request_kwargs):
     return geo_data
 
 
-def retry_if_not_value_error(exception):
+def retry_if_not_value_error(exception: Exception) -> bool:
     """Forces retry to exit if a valueError is returned. Supplied to the
     'retry_on_exception' argument in the retry decorator.
 
     Args:
-        exception (Exception): the raised exception, to check
+        exception : the raised exception, to check
 
     Returns:
-        (bool): False if a ValueError, else True
+        False if a ValueError, else True
     """
     return not isinstance(exception, ValueError)
 
 
 @retry(stop_max_attempt_number=10, retry_on_exception=retry_if_not_value_error)
 @ratelimit(max_per_second=0.5)
-def _geocode(q=None, **kwargs):
+def _geocode(q: str=None, **kwargs: str) -> dict:
     """Extension of geocode to catch invalid requests to the api and handle errors.
     failure.
 
     Args:
-        q (str): query string, multiple words should be separated with +
-        kwargs (str): name and value of any other valid query parameters
+        q : query string, multiple words should be separated with +
+        kwargs : name and value of any other valid query parameters
 
     Returns:
         dict: lat and lon
@@ -95,15 +95,15 @@ def _geocode(q=None, **kwargs):
     return {"lat": lat, "lon": lon}
 
 
-def geocode_dataframe(df):
+def geocode_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
     A wrapper for the geocode function to process a supplied dataframe using
     the city and country.
 
     Args:
-        df (dataframe): a dataframe containing city and country fields.
+        df : a dataframe containing city and country fields.
     Returns:
-        a dataframe with a 'coordinates' column appended.
+        df : a dataframe with a 'coordinates' column appended.
     """
     in_cols = ["city", "country"]
     out_col = "coordinates"
@@ -128,62 +128,62 @@ def geocode_dataframe(df):
     return pd.merge(df, _df, how="left", left_on=in_cols, right_on=in_cols)
 
 
-def geocode_batch_dataframe(
-    df,
-    city="city",
-    country="country",
-    latitude="latitude",
-    longitude="longitude",
-    query_method="both",
-):
+def geocode_batch_list(
+    list: list[dict],
+    city: str="city",
+    country: str="country",
+    latitude: str="latitude",
+    longitude: str="longitude",
+    query_method:str ="both",
+) -> list[dict]:
     """Geocodes a dataframe, first by supplying the city and country to the api, if this
     fails a second attempt is made supplying the combination using the q= method.
     The supplied dataframe df is returned with additional columns appended, containing
     the latitude and longitude as floats.
 
     Args:
-        df (:obj:`pandas.DataFrame`): input dataframe
-        city (str): name of the input column containing the city
-        country (str): name of the input column containing the country
-        latitude (str): name of the output column containing the latitude
-        longitude (str): name of the output column containing the longitude
-        query_method (int): query methods to attempt:
+        list : input list of dicts
+        city : name of the input column containing the city
+        country : name of the input column containing the country
+        latitude : name of the output column containing the latitude
+        longitude : name of the output column containing the longitude
+        query_method : query methods to attempt:
                                     'city_country_only': city and country only
                                     'query_only': q method only
                                     'both': city, country with fallback to q method
 
     Returns:
-        (:obj:`pandas.DataFrame`): original dataframe with lat and lon appended as floats
+        list : original list of dicts with lat and lon appended as floats
     """
     if query_method not in ["city_country_only", "query_only", "both"]:
         raise ValueError(
             "Invalid query method, must be 'city_country_only', 'query_only' or 'both'"
         )
 
-    df[latitude], df[longitude] = None, None
 
-    for idx, row in df.iterrows():
+    for item in list:
+        item[latitude], item[longitude] = None, None
         location = None
         if query_method in ["city_country_only", "both"]:
-            location = _geocode(city=row[city], country=row[country])
+            location = _geocode(city=item[city], country=item[country])
         if location is None and query_method in ["query_only", "both"]:
-            query = f"{row[city]} {row[country]}"
+            query = f"{item[city]} {item[country]}"
             location = _geocode(q=query)
         if location is not None:
-            df.loc[idx, latitude] = float(location["lat"])
-            df.loc[idx, longitude] = float(location["lon"])
-    return df
+            item[latitude] = float(location["lat"])
+            item[longitude] = float(location["lon"])
+    return list
 
 
-def generate_composite_key(city=None, country=None):
+def generate_composite_key(city: str=None, country: str=None) -> str:
     """Generates a composite key to use as the primary key for the geographic data.
 
     Args:
-        city (str): name of the city
-        country (str): name of the country
+        city : name of the city
+        country : name of the country
 
     Returns:
-        (str): composite key
+        str : composite key
     """
     try:
         city = city.replace(" ", "-").lower()
